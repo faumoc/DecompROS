@@ -38,7 +38,7 @@ private Q_SLOTS:
   void updateState();
   void updateScale();
   void updateVsScale();
-
+  void updateIndex();
 private:
   void processMessage(const decomp_ros_msgs::PolyhedronArray::ConstPtr &msg);
   void visualizeMessage(int state);
@@ -57,12 +57,13 @@ private:
   rviz::FloatProperty *scale_property_;
   rviz::FloatProperty *vs_scale_property_;
   rviz::EnumProperty *state_property_;
-
+  rviz::IntProperty *int_index_property_;
   Ogre::Vector3 position_;
   Ogre::Quaternion orientation_;
 
   vec_E<vec_Vec3f> vertices_;
   vec_E<std::pair<Vec3f, Vec3f>> vs_;
+  int selected_index_ = -1;
 };
 
 }

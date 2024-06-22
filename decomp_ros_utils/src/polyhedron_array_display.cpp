@@ -37,6 +37,10 @@ PolyhedronArrayDisplay::PolyhedronArrayDisplay() {
   state_property_->addOption("Both", 2);
   state_property_->addOption("Vs", 3);
 
+  int_index_property_ = new rviz::IntProperty("Polyhedron Index", -1,
+                                            "Index of the PolyhedronArray to display. Set to -1 to display all.",
+                                            this, SLOT(updateIndex()));
+
 }
 
 void PolyhedronArrayDisplay::onInitialize() { MFDClass::onInitialize(); }
@@ -62,16 +66,28 @@ void PolyhedronArrayDisplay::processMessage(const decomp_ros_msgs::PolyhedronArr
   vs_.clear();
 
   const auto polys = DecompROS::ros_to_polyhedron_array(*msg);
+  if (selected_index_ >= 0 && selected_index_ < static_cast<int>(polys.size())) {
+    const auto& polyhedron = polys[selected_index_];
 
-  for(const auto& polyhedron: polys){
+    // Process only the selected polyhedron.
     vec_E<vec_Vec3f> bds = cal_vertices(polyhedron);
     vertices_.insert(vertices_.end(), bds.begin(), bds.end());
     const auto vs = polyhedron.cal_normals();
     vs_.insert(vs_.end(), vs.begin(), vs.end());
-  }
 
-  int state = state_property_->getOptionInt();
-  visualizeMessage(state);
+    int state = state_property_->getOptionInt();
+    visualizeMessage(state);
+  } else if (selected_index_ == -1) {
+    for(const auto& polyhedron: polys){
+      vec_E<vec_Vec3f> bds = cal_vertices(polyhedron);
+      vertices_.insert(vertices_.end(), bds.begin(), bds.end());
+      const auto vs = polyhedron.cal_normals();
+      vs_.insert(vs_.end(), vs.begin(), vs.end());
+    }
+
+    int state = state_property_->getOptionInt();
+    visualizeMessage(state);
+  }
 }
 
 void PolyhedronArrayDisplay::visualizeMesh() {
@@ -180,6 +196,13 @@ void PolyhedronArrayDisplay::updateVsColorAndAlpha() {
   if(visual_vector_)
     visual_vector_->setColor(color.r, color.g, color.b, 1);
 }
+
+void PolyhedronArrayDisplay::updateIndex() {
+  // This function could be used to update some internal state based on the index.
+  // For now, we just store the index.
+  selected_index_ = int_index_property_->getInt();
+}
+
 }
 
 #include <pluginlib/class_list_macros.h>
